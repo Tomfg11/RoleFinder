@@ -13,6 +13,8 @@ const AISuggestionsModal = ({
     onRefresh 
 }) => {
     const [selectedVibe, setSelectedVibe] = React.useState("Romântico");
+    const [selectedRadius, setSelectedRadius] = React.useState(10);
+    
     if (!isOpen) return null;
 
     const VIBES = [
@@ -56,21 +58,45 @@ const AISuggestionsModal = ({
                         </button>
                     </div>
 
-                    <div className="mb-6">
-                        <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-2">Qual a vibe de hoje?</p>
-                        <div className="grid grid-cols-4 gap-2">
-                            {VIBES.map(v => (
-                                <button
-                                    key={v.id}
-                                    onClick={() => setSelectedVibe(v.id)}
-                                    className={`flex flex-col items-center gap-1 p-2 rounded-2xl border-2 transition-all ${selectedVibe === v.id 
-                                        ? 'border-blue-600 bg-blue-50 text-blue-600' 
-                                        : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
-                                >
-                                    <span className="text-lg md:text-xl">{v.icon}</span>
-                                    <span className="text-[8px] md:text-[9px] font-black uppercase tracking-tighter">{v.id}</span>
-                                </button>
-                            ))}
+                    <div className="flex flex-col gap-6 mb-8">
+                        <div>
+                            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-2 flex justify-between">
+                                <span>Distância Máxima</span>
+                                <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">{selectedRadius} km</span>
+                            </p>
+                            <div className="px-2">
+                                <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="50" 
+                                    value={selectedRadius} 
+                                    onChange={(e) => setSelectedRadius(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                />
+                                <div className="flex justify-between text-[8px] text-slate-300 font-bold mt-2 px-0.5">
+                                    <span>1km</span>
+                                    <span>25km</span>
+                                    <span>50km</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-2">Qual a vibe do casal?</p>
+                            <div className="grid grid-cols-4 gap-2 px-1">
+                                {VIBES.map(v => (
+                                    <button
+                                        key={v.id}
+                                        onClick={() => setSelectedVibe(v.id)}
+                                        className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${selectedVibe === v.id 
+                                            ? 'border-blue-600 bg-blue-50 text-blue-600' 
+                                            : 'border-slate-50 bg-white text-slate-400 hover:border-slate-200'}`}
+                                    >
+                                        <span className="text-xl">{v.icon}</span>
+                                        <span className="text-[8px] font-black uppercase tracking-tighter">{v.id}</span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
@@ -98,11 +124,11 @@ const AISuggestionsModal = ({
                                             </button>
                                         </div>
                                     ))}
-                                    <button onClick={() => onRefresh(selectedVibe)} className="w-full py-3 md:py-4 text-blue-600 font-black text-xs md:text-sm">Atualizar Opções</button>
+                                    <button onClick={() => onRefresh(selectedVibe, selectedRadius)} className="w-full py-3 md:py-4 text-blue-600 font-black text-xs md:text-sm">Atualizar Opções</button>
                                 </>
                             ) : (
                                 <button 
-                                    onClick={() => onRefresh(selectedVibe)} 
+                                    onClick={() => onRefresh(selectedVibe, selectedRadius)} 
                                     className="w-full py-5 md:py-6 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest shadow-lg shadow-slate-200"
                                 >
                                     Gerar Sugestões

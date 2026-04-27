@@ -73,12 +73,14 @@ export default function App() {
         }
     };
 
-    const handleSuggestPlaces = async (vibe) => {
+    const handleSuggestPlaces = async (vibe, radius) => {
         setAiLoading(true);
-        const results = await suggestPlaces(GEMINI_KEY, userLocation, places, vibe);
+        const results = await suggestPlaces(GEMINI_KEY, userLocation, places, vibe, radius);
         if (results) {
             setAiSuggestions(results);
             toast.success("Sugestões geradas!");
+        } else {
+            toast.error("Ocorreu um erro ao consultar a IA. Tente novamente.");
         }
         setAiLoading(false);
     };
@@ -97,9 +99,20 @@ export default function App() {
     };
 
     const handleExecuteRaffle = (budgetTier) => {
-        const possible = places.filter(p => !p.visited && !p.date && p.price.length <= budgetTier.length);
+        const possible = places.filter(p => {
+            if (p.visited || p.date) return false;
+
+            const priceStr = String(p.price || '').toLowerCase();
+            const isFree = priceStr.includes('grátis') || priceStr.includes('gratuito') || !priceStr.includes('$');
+
+            const priceValue = isFree ? 1 : priceStr.replace(/[^$]/g, '').length;
+            const budgetValue = budgetTier.length;
+
+            return priceValue <= budgetValue;
+        });
+
         if (possible.length === 0) {
-            toast.error("Nenhum lugar encontrado nesse orçamento!");
+            toast.error(`Nenhum lugar encontrado em "${budgetTier}"!`);
             return;
         }
         const random = possible[Math.floor(Math.random() * possible.length)];
@@ -148,7 +161,7 @@ export default function App() {
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-10 selection:bg-blue-100">
             <Toaster richColors position="top-center" />
-            
+
             <Navbar
                 onSuggest={() => setIsAISuggestOpen(true)}
                 onAdd={() => { setPlaceToEdit(null); setIsModalOpen(true); }}
@@ -245,7 +258,10 @@ export default function App() {
                 aiLoading={aiLoading}
                 suggestions={aiSuggestions}
                 onAddSuggestion={(sug) => {
-                    addPlace(sug);
+                    const normalized = { ...sug };
+                    if (normalized.price === 'Gratuito') normalized.price = 'Grátis';
+
+                    addPlace(normalized);
                     setAiSuggestions(prev => prev.filter(s => s.name !== sug.name));
                     toast.success("Adicionado à lista! ✨");
                 }}

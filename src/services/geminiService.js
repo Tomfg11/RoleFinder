@@ -71,17 +71,27 @@ export const callGemini = async (prompt, apiKey, systemInstruction, isJson = tru
     }
 };
 
-export const suggestPlaces = async (apiKey, userLocation, existingPlaces, vibe = "Romântico") => {
+export const suggestPlaces = async (apiKey, userLocation, existingPlaces, vibe = "Romântico", radius = 10) => {
     let prompt = `Sugira 3 novos lugares reais (Restaurantes, Bares ou Parques) para um casal no Rio de Janeiro. `;
     prompt += `O estilo do rolê (Vibe) deve ser: "${vibe}". `;
     
-    if (userLocation) prompt += `Perto de Lat ${userLocation.lat}, Lng ${userLocation.lng}. `;
+    if (userLocation) {
+        prompt += `Perto de Lat ${userLocation.lat}, Lng ${userLocation.lng}. `;
+        prompt += `REGRA DE DISTÂNCIA: Sugira apenas locais em um raio máximo de ${radius}km de distância dessas coordenadas. `;
+    }
     
     if (existingPlaces && existingPlaces.length > 0) {
         prompt += `\n\nREGRA CRÍTICA: É PROIBIDO sugerir qualquer um destes lugares (pois já fomos ou já estão na lista): ${existingPlaces.map(p => p.name).join(", ")}.`;
     }
 
-    const systemInstruction = `Você é um guia especializado em encontros no Rio de Janeiro, focado na vibe "${vibe}". Forneça sugestões curtas e diretas.`;
+    const systemInstruction = `Você é um guia especializado em encontros no Rio de Janeiro, focado na vibe "${vibe}". 
+    Para o campo 'price', use estritamente um destes valores: 
+    "Grátis" para locais sem custo (não use 'Gratuito'),
+    "$" para Econômico, 
+    "$$" para Justo, 
+    "$$$" para Premium, 
+    "$$$$" para Luxo. 
+    Forneça sugestões curtas e diretas.`;
 
     return await callGemini(prompt, apiKey, systemInstruction, true);
 };
